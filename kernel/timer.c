@@ -27,7 +27,7 @@ set_next_timeout() {
     // the timer will not work.
 
     // this bug seems to disappear automatically
-    // printf("");
+//     printf("");
     sbi_set_timer(r_time() + INTERVAL);
 }
 
@@ -41,4 +41,19 @@ void timer_tick() {
 
 int get_tick() {
   return ticks;
+}
+
+void
+do_nothing(int interval)
+{
+  int last_tick = ticks;
+  int count = 0;
+  while(count < interval){
+    printf("");
+    int cur_tick = ticks;
+    if (cur_tick != last_tick){
+      last_tick = cur_tick;
+      count++;
+    }
+  }
 }

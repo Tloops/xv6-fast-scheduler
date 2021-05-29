@@ -53,7 +53,7 @@ void
 procinit(void)
 {
   struct proc *p;
-  
+
   initlock(&pid_lock, "nextpid");
   for(p = proc; p < &proc[NPROC]; p++) {
       initlock(&p->lock, "proc");
@@ -94,7 +94,7 @@ struct cpu*
 mycpu(void) {
   int id = cpuid();
   struct cpu *c = &cpus[id];
-  
+
   return c;
 }
 
@@ -111,7 +111,7 @@ myproc(void) {
 int
 allocpid() {
   int pid;
-  
+
   acquire(&pid_lock);
   pid = nextpid;
   nextpid = nextpid + 1;
@@ -298,7 +298,7 @@ userinit(void)
 
   p = allocproc();
   initproc = p;
-  
+
   // allocate one user page and copy init's instructions
   // and data into it.
   uvminit(p->pagetable , p->kpagetable, initcode, sizeof(initcode));
@@ -457,7 +457,7 @@ exit(int status)
   acquire(&p->lock);
   struct proc *original_parent = p->parent;
   release(&p->lock);
-  
+
   // we need the parent's lock in order to wake it up from wait().
   // the parent-then-child rule says we have to lock it first.
   acquire(&original_parent->lock);
@@ -527,7 +527,7 @@ wait(uint64 addr)
       release(&p->lock);
       return -1;
     }
-    
+
     // Wait for a child to exit.
     sleep(p, &p->lock);  //DOC: wait-sleep
   }
@@ -545,6 +545,7 @@ scheduler(void)
 {
   struct proc *p;
   int last_index = -1;
+  int last_critical_index = -1;
   struct cpu *c = mycpu();
   extern pagetable_t kernel_pagetable;
 
@@ -566,6 +567,7 @@ scheduler(void)
       int eval = 5 * p->qos + (cur_tick - p->last_tick);
       if(p->state == RUNNABLE && p->critical && criticalProc == NULL) {
         criticalProc = p;
+        last_critical_index = i % NPROC;
       }
       if(p->state == RUNNABLE && eval > maxQos) {
         if(maxProc != NULL) {
@@ -573,7 +575,7 @@ scheduler(void)
         }
         maxQos = eval;
         maxProc = p;
-        last_index = i;
+        last_index = i % NPROC;
       }
       if(maxProc != p && criticalProc != p) {
         release(&p->lock);
@@ -583,11 +585,12 @@ scheduler(void)
       // Switch to chosen process.  It is the process's job
       // to release its lock and then reacquire it
       // before jumping back to us.
+      last_index = last_critical_index;
       if(maxProc != NULL && criticalProc != maxProc) {
         release(&maxProc->lock);
       }
-      printf("[scheduler]found runnable critical proc with pid: %d\n",
-             criticalProc->pid);
+      printf("{%d}[scheduler]found runnable critical proc with pid: %d\n",
+             cur_tick, criticalProc->pid);
       criticalProc->state = RUNNING;
       c->proc = criticalProc;
       criticalProc->last_tick = cur_tick; // renew the tick last time using this process
@@ -611,8 +614,8 @@ scheduler(void)
       if(criticalProc != NULL && criticalProc != maxProc) {
         release(&criticalProc->lock);
       }
-      printf("[scheduler]found runnable normal proc with pid: %d qos: %d last_tick: %d\n",
-             maxProc->pid, maxProc->qos, maxProc->last_tick);
+      printf("{%d}[scheduler]found runnable normal proc with pid: %d qos: %d last_tick: %d\n",
+             cur_tick, maxProc->pid, maxProc->qos, maxProc->last_tick);
       maxProc->state = RUNNING;
       c->proc = maxProc;
       maxProc->last_tick = cur_tick; // renew the tick last time using this process
@@ -728,7 +731,7 @@ void
 sleep(void *chan, struct spinlock *lk)
 {
   struct proc *p = myproc();
-  
+
   // Must acquire p->lock in order to
   // change p->state and then call sched.
   // Once we hold p->lock, we can be
@@ -753,19 +756,6 @@ sleep(void *chan, struct spinlock *lk)
   if(lk != &p->lock){
     release(&p->lock);
     acquire(lk);
-  }
-}
-
-void
-do_nothing(int ticks)
-{
-  int last_tick = get_tick();
-  int count = 0;
-  while(count < ticks){
-    if (get_tick() != last_tick){
-      last_tick = get_tick();
-      count++;
-    }
   }
 }
 

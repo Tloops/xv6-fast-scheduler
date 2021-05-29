@@ -180,3 +180,19 @@ sys_donothing(void)
   do_nothing(time);
   return 0;
 }
+
+uint64 sys_setcrt(void)
+{
+  int crt;
+  if(argint(0, &crt) < 0)
+    return -1;
+  int last_crt = myproc()->critical;
+  if(crt)
+    myproc()->critical = 1;
+  else
+    myproc()->critical = 0;
+  printf("change pid %d to critical proc\n", myproc()->pid);
+//  if(last_crt && !crt)
+    yield(); // yield current progress anyway
+  return last_crt;
+}

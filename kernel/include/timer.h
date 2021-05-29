@@ -11,5 +11,6 @@ void timerinit();
 void set_next_timeout();
 void timer_tick();
 int get_tick();
+void do_nothing(int);
 
 #endif

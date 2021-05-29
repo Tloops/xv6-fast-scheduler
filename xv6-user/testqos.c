@@ -50,19 +50,20 @@ test2_same_qos()
     int pid2 = fork();
     if(pid2) {
       //father process
-      donothing(10);
+      setqos(50);
+      donothing(5);
       printf("[%d] finished\n", getpid());
     }
     else {
       //son2 process
-      donothing(10);
+      donothing(5);
       printf("[%d] finished\n", getpid());
       exit(0);
     }
   }
   else {
     //son1 process
-    donothing(10);
+    donothing(5);
     printf("[%d] finished\n", getpid());
     exit(0);
   }
@@ -104,11 +105,45 @@ test3_wait_long_time()
   printf("-----test3 end-----\n");
 }
 
+// critical process should be scheduled fast and immediately
+void
+test4_critical_process()
+{
+  printf("-----test4 begin-----\n");
+
+  int pid = fork();
+  if(pid) {
+    //father process
+    int pid2 = fork();
+    if(pid2) {
+      //father process
+      setqos(50);
+      donothing(10);
+      printf("[%d] finished\n", getpid());
+    }
+    else {
+      //son2 process
+      setcrt(1);
+      donothing(20);
+      printf("[%d] finished\n", getpid());
+      exit(0);
+    }
+  }
+  else {
+    //son1 process
+    donothing(10);
+    printf("[%d] finished\n", getpid());
+    exit(0);
+  }
+
+  printf("-----test4 end-----\n");
+}
 
 int main(int argc, char *argv[])
 {
   test1_different_qos();
   test2_same_qos();
   test3_wait_long_time();
+  test4_critical_process();
   exit(0);
 }

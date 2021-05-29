@@ -30,5 +30,6 @@
 #define SYS_rename      26
 #define SYS_setqos      27
 #define SYS_donothing   28
+#define SYS_setcrt      29
 
 #endif

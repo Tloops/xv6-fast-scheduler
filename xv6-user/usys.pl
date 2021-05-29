@@ -43,3 +43,4 @@ entry("sysinfo");
 entry("rename");
 entry("setqos");
 entry("donothing");
+entry("setcrt");
