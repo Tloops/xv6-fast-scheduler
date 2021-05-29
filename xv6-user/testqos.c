@@ -15,26 +15,19 @@ int main(int argc, char *argv[])
     if(pid2) {
       //father process
       setqos(45);
-      for (int i = 0; i < 100000; ++i) {
-
-      }
       printf("[%d] finished\n", getpid());
     }
     else {
       //son2 process
       setqos(49);
-      for (int i = 0; i < 100000; ++i) {
-
-      }
+      donothing(50);
       printf("[%d] finished\n", getpid());
     }
   }
   else {
     //son1 process
     setqos(47);
-    for (int i = 0; i < 100000; ++i) {
-
-    }
+    donothing(30);
     printf("[%d] finished\n", getpid());
   }
   exit(0);

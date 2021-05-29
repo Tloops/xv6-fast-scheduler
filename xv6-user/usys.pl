@@ -41,4 +41,5 @@ entry("remove");
 entry("trace");
 entry("sysinfo");
 entry("rename");
-entry("setqos")
+entry("setqos");
+entry("donothing");

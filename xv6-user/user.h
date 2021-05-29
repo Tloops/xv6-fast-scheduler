@@ -34,6 +34,7 @@ int trace(int mask);
 int sysinfo(struct sysinfo *);
 int rename(char *old, char *new);
 int setqos(int);
+int donothing(int);
 
 // ulib.c
 int stat(const char*, struct stat*);

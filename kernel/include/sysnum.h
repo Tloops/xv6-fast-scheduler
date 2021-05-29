@@ -29,5 +29,6 @@
 #define SYS_getcwd      25
 #define SYS_rename      26
 #define SYS_setqos      27
+#define SYS_donothing   28
 
 #endif

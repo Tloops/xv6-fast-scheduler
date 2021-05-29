@@ -569,7 +569,8 @@ scheduler(void)
       // Switch to chosen process.  It is the process's job
       // to release its lock and then reacquire it
       // before jumping back to us.
-//         printf("[scheduler]found runnable proc with pid: %d\n", maxProc->pid);
+         printf("[scheduler]found runnable proc with pid: %d qos: %d last_tick: %d\n",
+                maxProc->pid, maxProc->qos, maxProc->last_tick);
       maxProc->state = RUNNING;
       c->proc = maxProc;
       maxProc->last_tick = cur_tick; // renew the tick last time using this process
@@ -714,6 +715,13 @@ sleep(void *chan, struct spinlock *lk)
     release(&p->lock);
     acquire(lk);
   }
+}
+
+void
+do_nothing(int ticks)
+{
+  int start = get_tick();
+  while(get_tick() - start < ticks);
 }
 
 // Wake up all processes sleeping on chan.
