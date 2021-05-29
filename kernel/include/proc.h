@@ -67,6 +67,7 @@ struct proc {
 
   int qos;                      // quality of service, the larger the more urgent
   int last_tick;                // last tick using cpu
+  int critical;                 // 0 not critical 1 critical
 };
 
 void            pinit(void);

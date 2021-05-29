@@ -166,7 +166,7 @@ sys_setqos(void)
   int last_qos = myproc()->qos;
   myproc()->qos = qos;
   printf("pid: %d qos: %d -> %d last_tick: %d\n", myproc()->pid, last_qos, qos, myproc()->last_tick);
-//  if(qos < last_qos)
+  if(qos < last_qos)
     yield(); // yield current progress anyway
   return last_qos;
 }

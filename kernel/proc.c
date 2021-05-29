@@ -167,7 +167,12 @@ found:
 
   // default quality of service
   p->qos = DEFAULT_QOS;
+
+  // last tick is current tick
   p->last_tick = get_tick();
+
+  // default not a critical process
+  p->critical = 0;
 
   return p;
 }
@@ -539,6 +544,7 @@ void
 scheduler(void)
 {
   struct proc *p;
+  int last_index = -1;
   struct cpu *c = mycpu();
   extern pagetable_t kernel_pagetable;
 
@@ -551,26 +557,62 @@ scheduler(void)
 
     int maxQos = -1;
     struct proc *maxProc = NULL;
+    struct proc *criticalProc = NULL;
     int cur_tick = get_tick();
-    for(p = proc; p < &proc[NPROC]; p++) {
+    int start = last_index+1;
+    for(int i = start; i < start + NPROC; i++) {
+      p = proc + (i % NPROC);
       acquire(&p->lock);
-      if(p->state == RUNNABLE && 10 * p->qos + (cur_tick - p->last_tick) > maxQos) {
+      int eval = 5 * p->qos + (cur_tick - p->last_tick);
+      if(p->state == RUNNABLE && p->critical && criticalProc == NULL) {
+        criticalProc = p;
+      }
+      if(p->state == RUNNABLE && eval > maxQos) {
         if(maxProc != NULL) {
           release(&maxProc->lock);
         }
-        maxQos = p->qos;
+        maxQos = eval;
         maxProc = p;
+        last_index = i;
       }
-      else {
+      if(maxProc != p && criticalProc != p) {
         release(&p->lock);
       }
     }
-    if(maxProc != NULL) {
+    if(criticalProc != NULL && cur_tick % 10 != 0){
       // Switch to chosen process.  It is the process's job
       // to release its lock and then reacquire it
       // before jumping back to us.
-         printf("[scheduler]found runnable proc with pid: %d qos: %d last_tick: %d\n",
-                maxProc->pid, maxProc->qos, maxProc->last_tick);
+      if(maxProc != NULL && criticalProc != maxProc) {
+        release(&maxProc->lock);
+      }
+      printf("[scheduler]found runnable critical proc with pid: %d\n",
+             criticalProc->pid);
+      criticalProc->state = RUNNING;
+      c->proc = criticalProc;
+      criticalProc->last_tick = cur_tick; // renew the tick last time using this process
+      w_satp(MAKE_SATP(criticalProc->kpagetable));
+      sfence_vma();
+      swtch(&c->context, &criticalProc->context);
+      w_satp(MAKE_SATP(kernel_pagetable));
+      sfence_vma();
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+
+      found = 1;
+
+      release(&criticalProc->lock);
+    }
+    else if(maxProc != NULL) {
+      // Switch to chosen process.  It is the process's job
+      // to release its lock and then reacquire it
+      // before jumping back to us.
+      if(criticalProc != NULL && criticalProc != maxProc) {
+        release(&criticalProc->lock);
+      }
+      printf("[scheduler]found runnable normal proc with pid: %d qos: %d last_tick: %d\n",
+             maxProc->pid, maxProc->qos, maxProc->last_tick);
       maxProc->state = RUNNING;
       c->proc = maxProc;
       maxProc->last_tick = cur_tick; // renew the tick last time using this process
@@ -587,9 +629,6 @@ scheduler(void)
 
       release(&maxProc->lock);
     }
-//    else {
-//      printf("Something wrong!!");
-//    }
 
 //    int found = 0;
 //    for(p = proc; p < &proc[NPROC]; p++) {
@@ -720,8 +759,14 @@ sleep(void *chan, struct spinlock *lk)
 void
 do_nothing(int ticks)
 {
-  int start = get_tick();
-  while(get_tick() - start < ticks);
+  int last_tick = get_tick();
+  int count = 0;
+  while(count < ticks){
+    if (get_tick() != last_tick){
+      last_tick = get_tick();
+      count++;
+    }
+  }
 }
 
 // Wake up all processes sleeping on chan.
