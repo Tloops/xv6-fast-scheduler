@@ -1,6 +1,10 @@
 # xv6-fast-scheduler
 
-implement a fast-scheduler based on HUST-OS/xv6-k210
+CS302 Operating System project 2
+
+Requirement: implement [proj59-linux-fast-scheduler](https://github.com/oscomp/proj59-linux-fast-scheduler), which is a topic of an os competition.
+
+Based on [HUST-OS/xv6-k210](https://github.com/HUST-OS/xv6-k210)
 
 ## Setting up and running tests for fast-scheduler
 
@@ -13,7 +17,7 @@ make run platform=qemu
 
 Ps: Press [Ctrl + A] then [X] to quit qemu.
 
-When you start running the operating system, try the following user program:
+When you start running the operating system which executes a shell, try enter the following code to start the test user program:
 
 ```
 $ testqos
@@ -136,3 +140,15 @@ The functions of the fast-scheduler are fully implemented.
 However, the real-time performance is hard to estimate. 
 
 More experiment and tests are needed to further improve the effiencicy and adjust the parameters.
+
+## PS
+
+This may not be a satisfying implementation of fast-scheduler.
+
+However, this really helps me to know more about operating systems from pure code.
+
+Such experience is really hard to gain from our courses or labs.
+
+Thanks to xv6 which provides clear documents.
+
+Also thanks to my teammates who tried hard to implement syscalls.
