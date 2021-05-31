@@ -1,6 +1,25 @@
 # xv6-fast-scheduler
 
-implement a fast-scheduler based on HUSTOS
+implement a fast-scheduler based on HUST-OS/xv6-k210
+
+## Setting up and running tests for fast-scheduler
+
+You can follow the instruction in [HUST-OS](https://github.com/HUST-OS/xv6-k210#run-on-qemu-system-riscv64) repository
+
+```
+make fs
+make run platform=qemu
+```
+
+Ps: Press [Ctrl + A] then [X] to quit qemu.
+
+When you start running the operating system, try the following user program:
+
+```
+$ testqos
+```
+
+This runs 4 tests in `testqos.c` and shows the scheduler states during the test.
 
 ## Implementation
 
